@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+
+    <Appenders>
+
+        <Console name="JsonConsole">
+            <JsonLayout
+                    eventEol="true"
+                    compact="false"
+                    properties="true"
+                    locationInfo="false"
+                    includeStacktrace="true"
+                    stacktraceAsString="true"
+                    complete="false"
+            />
+        </Console>
+
+        <Console name="TextConsole">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %c - %msg%n"/>
+        </Console>
+
+    </Appenders>
+
+    <Loggers>
+
+        <Logger name="jirat.viriyataranon" level="info" additivity="false">
+            <AppenderRef ref="JsonConsole"/>
+        </Logger>
+
+        <Root level="info">
+            <AppenderRef ref="TextConsole"/>
+        </Root>
+
+    </Loggers>
+
+</Configuration>
