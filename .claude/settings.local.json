@@ -12,7 +12,8 @@
       "Bash(curl -s http://localhost:7001/kv/hello)",
       "Bash(curl -s http://localhost:7001/kv/missing)",
       "Bash(curl -s -X PUT http://localhost:7001/v1/kv/hello -H \"Content-Type: application/json\" -d '\"world\"')",
-      "Bash(curl -s http://localhost:7001/v1/kv/hello)"
+      "Bash(curl -s http://localhost:7001/v1/kv/hello)",
+      "Bash(chmod +x *)"
     ]
   }
 }
