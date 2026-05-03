@@ -4,8 +4,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jirat.viriyataranon.coda.kv.config.KvConfig;
 import jirat.viriyataranon.coda.kv.exception.UnexpectedException;
 import jirat.viriyataranon.coda.kv.model.KvRequestContext;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -16,7 +18,10 @@ import java.time.Instant;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class KvRequestFilter extends OncePerRequestFilter {
+
+    private final KvConfig config;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -43,6 +48,8 @@ public class KvRequestFilter extends OncePerRequestFilter {
         var endDateTime = Instant.now();
 
         log.atInfo()
+                .addKeyValue("nodeId", config.getNodeId())
+
                 .addKeyValue("remoteAddr", request.getRemoteAddr())
                 .addKeyValue("remoteHost", request.getRemoteHost())
                 .addKeyValue("remotePort", request.getRemotePort())

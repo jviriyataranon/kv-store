@@ -4,5 +4,6 @@ public enum Operation {
 
     GET,
     PUT,
-    PATCH;
+    PATCH,
+    LIST;
 }

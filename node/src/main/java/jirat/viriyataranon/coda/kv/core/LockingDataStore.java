@@ -6,7 +6,9 @@ import jirat.viriyataranon.coda.kv.model.Node;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 public class LockingDataStore implements DataStore {
 
@@ -36,6 +38,14 @@ public class LockingDataStore implements DataStore {
 
             return Node.next(value, oldVersion);
         });
+    }
+
+    public Set<String> keys() {
+        return Collections.unmodifiableSet(store.keySet());
+    }
+
+    public void delete(String key) {
+        store.remove(key);
     }
 
     public Node patch(String key, JsonNode delta, Long ifVersion) {

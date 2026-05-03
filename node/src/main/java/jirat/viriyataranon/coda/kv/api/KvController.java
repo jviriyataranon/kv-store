@@ -1,23 +1,54 @@
 package jirat.viriyataranon.coda.kv.api;
 
+import jirat.viriyataranon.coda.kv.config.KvConfig;
 import jirat.viriyataranon.coda.kv.core.DataStore;
 import jirat.viriyataranon.coda.kv.exception.InvalidVersionException;
 import jirat.viriyataranon.coda.kv.exception.MissingKeyException;
+import jirat.viriyataranon.coda.kv.model.KvListKeyResponse;
 import jirat.viriyataranon.coda.kv.model.KvRequestContext;
 import jirat.viriyataranon.coda.kv.model.KvResponse;
 import jirat.viriyataranon.coda.kv.model.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/v1/kv")
 @RequiredArgsConstructor
 public class KvController {
 
+    private final KvConfig config;
     private final DataStore dataStore;
+    private final ObjectMapper objectMapper;
+
+    private static final int LIST_FLUSH_BATCH = 64;
+
+    @GetMapping(produces = "application/x-ndjson")
+    public ResponseEntity<StreamingResponseBody> list(
+            @RequestAttribute(KvRequestContext.KEY) KvRequestContext context
+    ) {
+        context.setOperation(Operation.LIST);
+
+        StreamingResponseBody body = output -> {
+            int count = 0;
+            for (var key : dataStore.keys()) {
+                output.write(objectMapper.writeValueAsBytes(new KvListKeyResponse(key, config.getNodeId())));
+                output.write('\n');
+
+                count++;
+                if (count % LIST_FLUSH_BATCH == 0) output.flush();
+            }
+
+            output.flush();
+        };
+
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_NDJSON).body(body);
+    }
 
     @GetMapping("/{key}")
     public ResponseEntity<KvResponse> get(

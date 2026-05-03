@@ -6,7 +6,9 @@ import jirat.viriyataranon.coda.kv.model.Node;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class OptimisticDataStore implements DataStore {
@@ -28,56 +30,70 @@ public class OptimisticDataStore implements DataStore {
     }
 
     public Node put(String key, JsonNode value, Long ifVersion) {
-        var ref = store.computeIfAbsent(key, k -> new AtomicReference<>(null));
-
         while (true) {
-            var current = ref.get();
-            if (current == null) {
+            var ref = store.get(key);
+
+            if (ref == null) {
                 if (ifVersion != null) throw new InvalidVersionException(ifVersion);
 
                 var next = Node.init(value);
-                if (ref.compareAndSet(current, next)) return next;
 
-                continue;
+                var existing = store.putIfAbsent(key, new AtomicReference<>(next));
+                if (existing != null) continue;
+
+                return next;
             }
 
+            var current = ref.get();
+
             var oldVersion = current.version();
-            if (ifVersion != null && ifVersion != oldVersion) throw new InvalidVersionException(oldVersion, ifVersion);
+            if (ifVersion != null && ifVersion != oldVersion) {
+                throw new InvalidVersionException(oldVersion, ifVersion);
+            }
 
             var next = Node.next(value, oldVersion);
             if (ref.compareAndSet(current, next)) return next;
         }
     }
 
-    public Node patch(String key, JsonNode delta, Long ifVersion) {
-        var ref = store.computeIfAbsent(key, k -> new AtomicReference<>(null));
+    public Set<String> keys() {
+        return Collections.unmodifiableSet(store.keySet());
+    }
 
+    public void delete(String key) {
+        store.remove(key);
+    }
+
+    public Node patch(String key, JsonNode delta, Long ifVersion) {
         while (true) {
-            var current = ref.get();
-            if (current == null) {
+            var ref = store.get(key);
+
+            if (ref == null) {
                 if (ifVersion != null) throw new InvalidVersionException(ifVersion);
 
                 var next = Node.init(delta);
-                if (ref.compareAndSet(current, next)) return next;
+                var existing = store.putIfAbsent(key, new AtomicReference<>(next));
+                if (existing != null) continue;
 
-                continue;
+                return next;
             }
+
+            var current = ref.get();
 
             var oldVersion = current.version();
             if (ifVersion != null && ifVersion != oldVersion) throw new InvalidVersionException(oldVersion, ifVersion);
 
             var currentValue = current.value();
+            JsonNode newValue;
             if (currentValue.isObject() && delta.isObject()) {
                 ObjectNode merged = currentValue.deepCopy().asObject();
                 merged.setAll(delta.asObject());
-
-                var next = Node.next(merged, oldVersion);
-                if (ref.compareAndSet(current, next)) return next;
-
-                continue;
+                newValue = merged;
+            } else {
+                newValue = delta;
             }
 
-            var next = Node.next(delta, oldVersion);
+            var next = Node.next(newValue, oldVersion);
             if (ref.compareAndSet(current, next)) return next;
         }
     }
