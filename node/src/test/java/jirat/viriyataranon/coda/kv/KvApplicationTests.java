@@ -1,6 +1,7 @@
 package jirat.viriyataranon.coda.kv;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.common.util.StringUtils;
+import jirat.viriyataranon.coda.kv.config.KvConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
@@ -11,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.client.EntityExchangeResult;
 import org.springframework.test.web.servlet.client.RestTestClient;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,9 @@ class KvApplicationTests {
     @Autowired
     private RestTestClient rest;
 
+    @Autowired
+    private KvConfig config;
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     // ─── GET /kv/{key} ────────────────────────────────────────────────────────
@@ -45,7 +50,7 @@ class KvApplicationTests {
         put("/kv/get-basic", "{\"x\":1}");
 
         JsonNode body = get("/kv/get-basic").getResponseBody();
-        assertThat(body.get("key").asText()).isEqualTo("get-basic");
+        assertThat(body.get("key").asString()).isEqualTo("get-basic");
         assertThat(body.get("value").get("x").asInt()).isEqualTo(1);
         assertThat(body.get("version").asLong()).isEqualTo(1);
     }
@@ -64,7 +69,7 @@ class KvApplicationTests {
         put("/kv/put-replace", "\"second\"");
 
         JsonNode body = get("/kv/put-replace").getResponseBody();
-        assertThat(body.get("value").asText()).isEqualTo("second");
+        assertThat(body.get("value").asString()).isEqualTo("second");
         assertThat(body.get("version").asLong()).isEqualTo(2);
     }
 
@@ -153,7 +158,7 @@ class KvApplicationTests {
     void patch_existingObjectNewNonObject_replaces() throws Exception {
         put("/kv/patch-obj-str", "{\"a\":1}");
         patch("/kv/patch-obj-str", "\"scalar\"");
-        assertThat(get("/kv/patch-obj-str").getResponseBody().get("value").asText()).isEqualTo("scalar");
+        assertThat(get("/kv/patch-obj-str").getResponseBody().get("value").asString()).isEqualTo("scalar");
     }
 
     @Test
@@ -214,7 +219,7 @@ class KvApplicationTests {
         // iso-a should still be at version 1, iso-b at version 3
         assertThat(get("/kv/iso-a").getResponseBody().get("version").asLong()).isEqualTo(1);
         assertThat(get("/kv/iso-b").getResponseBody().get("version").asLong()).isEqualTo(3);
-        assertThat(get("/kv/iso-a").getResponseBody().get("value").asText()).isEqualTo("alpha");
+        assertThat(get("/kv/iso-a").getResponseBody().get("value").asString()).isEqualTo("alpha");
     }
 
     // ─── Concurrency ──────────────────────────────────────────────────────────
@@ -248,6 +253,44 @@ class KvApplicationTests {
         for (Future<Void> f : futures) f.get();  // rethrow any thread exceptions
 
         assertThat(get("/kv/" + key).getResponseBody().get("value").asInt()).isEqualTo(threads * increments);
+    }
+
+    // ─── GET /kv (list) ───────────────────────────────────────────────────────
+
+    @Test
+    void list_returnsNdjsonContentType() {
+        var result = rest.get().uri(url("/kv")).exchange().returnResult(byte[].class);
+        assertThat(result.getResponseHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_NDJSON);
+    }
+
+    @Test
+    void list_keysPutEarlierAppearInResponse() throws Exception {
+        put("/kv/list-alpha", "1");
+        put("/kv/list-beta", "2");
+
+        var keys = listNdjson().stream().map(n -> n.get("key").asString()).toList();
+        assertThat(keys).contains("list-alpha", "list-beta");
+    }
+
+    @Test
+    void list_eachEntryHasNodeIdMatchingConfig() throws Exception {
+        put("/kv/list-node-check", "1");
+
+        var items = listNdjson();
+        assertThat(items).isNotEmpty();
+        items.forEach(n -> assertThat(n.get("node").asString()).isEqualTo(config.getNodeId()));
+    }
+
+    @Test
+    void list_eachEntryHasKeyAndNodeFields() throws Exception {
+        put("/kv/list-fields-check", "99");
+
+        var match = listNdjson().stream()
+                .filter(n -> "list-fields-check".equals(n.get("key").asString()))
+                .findFirst();
+        assertThat(match).isPresent();
+        assertThat(match.get().get("key").asString()).isEqualTo("list-fields-check");
+        assertThat(match.get().get("node").asString()).isNotBlank();
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -299,5 +342,26 @@ class KvApplicationTests {
                 .body(json)
                 .exchange()
                 .returnResult(JsonNode.class);
+    }
+
+    private List<JsonNode> listNdjson() throws Exception {
+        var ndjson = rest.get()
+                .uri(url("/kv"))
+                .exchange()
+                .returnResult(String.class)
+                .getResponseBody();
+
+        if (StringUtils.isBlank(ndjson)) return List.of();
+
+        return ndjson.lines()
+                .filter(StringUtils::isNotBlank)
+                .map(l -> {
+                    try {
+                        return mapper.readTree(l);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
     }
 }
