@@ -1,0 +1,59 @@
+services:
+  node1:
+    build:
+      context: .
+      dockerfile: node/Dockerfile
+    image: kv-node
+    ports:
+      - "7001:7001"
+      - "9010:9010"
+    environment:
+      JMX_HOST: localhost
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1g
+
+  node2:
+    image: kv-node
+    ports:
+      - "7002:7001"
+    depends_on:
+      - node1
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1g
+
+  node3:
+    image: kv-node
+    ports:
+      - "7003:7001"
+    depends_on:
+      - node1
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1g
+
+  router:
+    build:
+      context: .
+      dockerfile: router/Dockerfile
+    image: kv-router
+    ports:
+      - "6999:6999"
+    environment:
+      NODE_URLS: "http://node1:7001,http://node2:7001,http://node3:7001"
+    depends_on:
+      - node1
+      - node2
+      - node3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1g

@@ -19,7 +19,7 @@ MAX_VUS=${MAX_VUS:-30}
 HOT_KEYS=${HOT_KEYS:-1}
 COLD_KEYS=${COLD_KEYS:-10000}
 THINK_MS=${THINK_MS:-5}
-IMAGE=${IMAGE:-kv}
+IMAGE=${IMAGE:-kv-node}
 
 RESULTS_DIR="results/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$RESULTS_DIR"
