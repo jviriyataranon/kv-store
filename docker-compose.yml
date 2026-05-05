@@ -7,8 +7,12 @@ services:
     ports:
       - "7001:7001"
       - "9010:9010"
+    depends_on:
+      - router
     environment:
       JMX_HOST: localhost
+      NODE_ADDRESS: node1
+      KV_ROUTER_URL: http://router:6999
     deploy:
       resources:
         limits:
@@ -20,7 +24,10 @@ services:
     ports:
       - "7002:7001"
     depends_on:
-      - node1
+      - router
+    environment:
+      NODE_ADDRESS: node2
+      KV_ROUTER_URL: http://router:6999
     deploy:
       resources:
         limits:
@@ -32,7 +39,10 @@ services:
     ports:
       - "7003:7001"
     depends_on:
-      - node1
+      - router
+    environment:
+      NODE_ADDRESS: node3
+      KV_ROUTER_URL: http://router:6999
     deploy:
       resources:
         limits:
@@ -46,12 +56,6 @@ services:
     image: kv-router
     ports:
       - "6999:6999"
-    environment:
-      NODE_URLS: "http://node1:7001,http://node2:7001,http://node3:7001"
-    depends_on:
-      - node1
-      - node2
-      - node3
     deploy:
       resources:
         limits:

@@ -4,3 +4,5 @@ target
 *.md
 *.pdf
 *.txt
+.gitignore
+.claude
