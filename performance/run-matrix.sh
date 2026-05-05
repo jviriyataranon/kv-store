@@ -14,6 +14,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
 BASE_URL=${BASE_URL:-http://localhost:7001}
 MAX_VUS=${MAX_VUS:-30}
 HOT_KEYS=${HOT_KEYS:-1}
@@ -21,7 +24,7 @@ COLD_KEYS=${COLD_KEYS:-10000}
 THINK_MS=${THINK_MS:-5}
 IMAGE=${IMAGE:-kv-node}
 
-RESULTS_DIR="results/$(date +%Y%m%d_%H%M%S)"
+RESULTS_DIR="${REPO_ROOT}/results/$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$RESULTS_DIR"
 
 WORKLOADS=(balanced read-heavy write-heavy update-heavy)
@@ -39,7 +42,7 @@ force_gc() {
   echo "[gc] triggering full GC in container $cid..."
   # PID 1 is the JVM when using the exec form of ENTRYPOINT in Docker.
   docker exec "$cid" jcmd 1 GC.run 2>&1 || echo "[gc] jcmd not available — skipping GC"
-  # GC.run is async; give the collector ~5 s to finish before the next run starts.
+  # GC.run is async; give the collector ~60 s to finish before the next run starts.
   sleep 60
 }
 
@@ -59,7 +62,7 @@ k6 run \
   -e HOT_KEYS="$HOT_KEYS" \
   -e COLD_KEYS="$COLD_KEYS" \
   -e MAX_VUS="$MAX_VUS" \
-  performance/warmup.js
+  "${SCRIPT_DIR}/warmup.js"
 echo ""
 
 RUN=0
@@ -87,12 +90,12 @@ for workload in "${WORKLOADS[@]}"; do
       -e MAX_VUS="$MAX_VUS" \
       -e THINK_MS="$THINK_MS" \
       -e RESULT_PATH="$RESULTS_DIR" \
-      performance/performance.js || true   # don't abort the matrix on a threshold breach
+      "${SCRIPT_DIR}/performance.js" || true   # don't abort the matrix on a threshold breach
 
     RUN_END=$(date '+%H:%M:%S')
 
-    JSON_FILE=$(find $RESULTS_DIR/ -maxdepth 1 -newer "$MARKER" -name "*.json" 2>/dev/null | sort | tail -1)
-    HTML_FILE=$(find $RESULTS_DIR/ -maxdepth 1 -newer "$MARKER" -name "*.html" 2>/dev/null | sort | tail -1)
+    JSON_FILE=$(find "$RESULTS_DIR"/ -maxdepth 1 -newer "$MARKER" -name "*.json" 2>/dev/null | sort | tail -1)
+    HTML_FILE=$(find "$RESULTS_DIR"/ -maxdepth 1 -newer "$MARKER" -name "*.html" 2>/dev/null | sort | tail -1)
     rm -f "$MARKER"
 
     S_WORKLOAD+=("$workload"); S_CONTENTION+=("$contention")
@@ -117,3 +120,35 @@ for i in "${!S_WORKLOAD[@]}"; do
   echo ""
 done
 echo "============================================================"
+
+# ── Markdown summary ──────────────────────────────────────────────────────────
+
+SUMMARY_FILE="$RESULTS_DIR/summary.md"
+{
+  echo "# Performance Matrix Results"
+  echo ""
+  echo "- **Date:** $(date '+%Y-%m-%d %H:%M:%S')"
+  echo "- **BASE_URL:** $BASE_URL"
+  echo "- **MAX_VUS:** $MAX_VUS  **HOT_KEYS:** $HOT_KEYS  **COLD_KEYS:** $COLD_KEYS  **THINK_MS:** ${THINK_MS}ms"
+  echo ""
+  echo "| # | Workload | Contention | Start | End | JSON | HTML |"
+  echo "|---|---|---|---|---|---|---|"
+  for i in "${!S_WORKLOAD[@]}"; do
+    JSON_CELL="${S_JSON[$i]}"
+    HTML_CELL="${S_HTML[$i]}"
+    # Absolute paths → relative Markdown links; sentinels (—) left as-is.
+    if [[ "$JSON_CELL" == /* ]]; then
+      JSON_NAME=$(basename "$JSON_CELL")
+      JSON_CELL="[${JSON_NAME}](./${JSON_NAME})"
+    fi
+    if [[ "$HTML_CELL" == /* ]]; then
+      HTML_NAME=$(basename "$HTML_CELL")
+      HTML_CELL="[${HTML_NAME}](./${HTML_NAME})"
+    fi
+    printf "| %d | %s | %s | %s | %s | %s | %s |\n" \
+      $(( i + 1 )) "${S_WORKLOAD[$i]}" "${S_CONTENTION[$i]}" \
+      "${S_START[$i]}" "${S_END[$i]}" "$JSON_CELL" "$HTML_CELL"
+  done
+} > "$SUMMARY_FILE"
+
+echo "Summary → $SUMMARY_FILE"

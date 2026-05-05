@@ -11,6 +11,7 @@ FROM eclipse-temurin:25-jdk
 WORKDIR /app
 
 EXPOSE 6999
+EXPOSE 9011
 
 ENV JMX_HOST=localhost
 ENV JMX_PORT=9011

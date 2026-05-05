@@ -20,7 +20,7 @@
 import http from 'k6/http';
 
 const BASE_URL  = __ENV.BASE_URL  || 'http://localhost:7001';
-const HOT_KEYS  = parseInt(__ENV.HOT_KEYS  || '10');
+const HOT_KEYS  = parseInt(__ENV.HOT_KEYS  || '1');
 const COLD_KEYS = parseInt(__ENV.COLD_KEYS || '10000');
 const MAX_VUS   = parseInt(__ENV.MAX_VUS   || '100');
 

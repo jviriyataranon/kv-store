@@ -82,9 +82,9 @@ make stop    # stop it
 Two `DataStore` implementations are available, selectable via `kv.data-store-type` in `application.properties`:
 
 | Implementation | Mechanism | Default |
-|---|---|---|
-| `optimistic` | `AtomicReference` + CAS retry loop | yes |
-| `locking` | `ConcurrentHashMap.compute()` | no |
+|---|---|---------|
+| `optimistic` | `AtomicReference` + CAS retry loop | no      |
+| `locking` | `ConcurrentHashMap.compute()` | yes     |
 
 Both guarantee per-key atomicity. See [performance results](#performance) for the tradeoffs.
 

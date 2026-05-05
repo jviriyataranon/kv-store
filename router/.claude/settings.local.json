@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E '\\\\.\\(md|sh|yml|yaml|dockerfile|dockerignore\\)$|Dockerfile|docker-compose')",
+      "Bash(bash *)",
+      "Bash(awk 'NR==109,NR==113' /Users/jiratviriyataranon/Desktop/coda/kv/performance/run-matrix.sh)",
+      "Bash(awk 'NR==111' /Users/jiratviriyataranon/Desktop/coda/kv/performance/run-matrix.sh)",
+      "Bash(xargs -I {} basename {})"
+    ]
+  }
+}
