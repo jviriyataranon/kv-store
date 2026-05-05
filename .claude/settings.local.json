@@ -48,7 +48,29 @@
       "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn -pl node test)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); metrics=d.get\\('metrics',{}\\); print\\('=== WITHOUT ROUTER ==='\\); [print\\(k,':', json.dumps\\(v, indent=2\\)\\) for k,v in metrics.items\\(\\) if k in ['http_reqs','http_req_duration','http_req_failed','iterations']]\")",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); metrics=d.get\\('metrics',{}\\); print\\('=== WITH ROUTER ==='\\); [print\\(k,':', json.dumps\\(v, indent=2\\)\\) for k,v in metrics.items\\(\\) if k in ['http_reqs','http_req_duration','http_req_failed','iterations']]\")",
-      "Bash(mvn test *)"
+      "Bash(mvn test *)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn test)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn test-compile)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn dependency:build-classpath -q)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home javap -classpath /Users/jiratviriyataranon/.m2/repository/tools/jackson/core/jackson-databind/3.1.2/jackson-databind-3.1.2.jar tools.jackson.databind.JsonNode)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home javap -classpath /Users/jiratviriyataranon/.m2/repository/org/wiremock/wiremock/3.13.0/wiremock-3.13.0.jar \"com.github.tomakehurst.wiremock.jetty.JettyHttpServer\")",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home javap -c -classpath /Users/jiratviriyataranon/.m2/repository/org/wiremock/wiremock/3.13.0/wiremock-3.13.0.jar \"com.github.tomakehurst.wiremock.http.HttpServerFactoryLoader\")",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home javap *)",
+      "Bash(mkdir -p /tmp/wiremock-inspect)",
+      "Read(//tmp/**)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home jar --extract --file=/Users/jiratviriyataranon/.m2/repository/org/wiremock/wiremock/3.13.0/wiremock-3.13.0.jar -C /tmp/wiremock2)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn dependency:tree -f /Users/jiratviriyataranon/Desktop/coda/kv/router/pom.xml)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn -f /Users/jiratviriyataranon/Desktop/coda/kv/router/pom.xml dependency:resolve)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn -f /Users/jiratviriyataranon/Desktop/coda/kv/router/pom.xml test -pl . -Dtest=RouterApplicationTests#register_sameNode_doesNotIncrementTopologyVersion)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn -f /Users/jiratviriyataranon/Desktop/coda/kv/router/pom.xml dependency:tree -Dscope=test)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn -f /Users/jiratviriyataranon/Desktop/coda/kv/router/pom.xml dependency:tree)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn dependency:tree)",
+      "Bash(tee /tmp/deps.txt)",
+      "Bash(xargs -I{} bash -c 'jar tf {} | grep -i \"IOFunction\\\\|httpclient\\\\|hc.core5\" | head -10')",
+      "Bash(xargs -I{} jar tf {})",
+      "Bash(xargs -I{} bash -c 'jar tf {} | grep -l \"IOFunction\" 2>/dev/null && echo {}')",
+      "Bash(xargs -P4 bash -c 'for f; do jar tf \"$f\" 2>/dev/null | grep -q \"IOFunction\" && echo \"FOUND: $f\"; done' _)",
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn test -Dtest=RouterApplicationTests#get_forwardsToNode_returnsNodeResponse)"
     ]
   }
 }

@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -161,5 +162,9 @@ public class NodeRegistry {
 
     public TopologyView topology() {
         return topology.get().view();
+    }
+
+    public Map<String, Instant> nodeLastSeen() {
+        return Collections.unmodifiableMap(nodeLastSeen);
     }
 }
