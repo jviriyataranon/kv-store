@@ -37,7 +37,12 @@ public class RouterController {
             "te",
             "trailer",
             "transfer-encoding",
-            "upgrade"
+            "upgrade",
+            ":status",
+            ":method",
+            ":path",
+            ":scheme",
+            ":authority"
     );
 
     private final NodeRegistry registry;

@@ -12,6 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -52,6 +55,7 @@ public class TopologyCleanup {
     private void sweepWatcher() {
         while (!Thread.currentThread().isInterrupted()) {
             try {
+                var startDateTime = Instant.now();
                 var topology = queue.take();
 
                 var hasher = ConsistentHashing
@@ -69,7 +73,14 @@ public class TopologyCleanup {
                     }
                 }
 
-                if (deleted > 0) log.atInfo().log("Topology sweep deleted {} obsolete keys", deleted);
+                if (deleted > 0) {
+                    var endDateTime = Instant.now();
+                    log.atInfo()
+                            .addKeyValue("startDateTime", startDateTime)
+                            .addKeyValue("endDateTime", endDateTime)
+                            .addKeyValue("executionTime", Duration.between(startDateTime, endDateTime).toMillis())
+                            .log("Topology sweep deleted {} obsolete keys", deleted);
+                }
 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

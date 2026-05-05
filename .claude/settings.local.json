@@ -45,7 +45,10 @@
       "Bash(mvn -pl node test -q)",
       "Bash(/usr/libexec/java_home -V)",
       "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn -pl node test -q)",
-      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn -pl node test)"
+      "Bash(JAVA_HOME=/Users/jiratviriyataranon/Library/Java/JavaVirtualMachines/openjdk-26.0.1/Contents/Home mvn -pl node test)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); metrics=d.get\\('metrics',{}\\); print\\('=== WITHOUT ROUTER ==='\\); [print\\(k,':', json.dumps\\(v, indent=2\\)\\) for k,v in metrics.items\\(\\) if k in ['http_reqs','http_req_duration','http_req_failed','iterations']]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); metrics=d.get\\('metrics',{}\\); print\\('=== WITH ROUTER ==='\\); [print\\(k,':', json.dumps\\(v, indent=2\\)\\) for k,v in metrics.items\\(\\) if k in ['http_reqs','http_req_duration','http_req_failed','iterations']]\")",
+      "Bash(mvn test *)"
     ]
   }
 }

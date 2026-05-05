@@ -12,8 +12,18 @@ WORKDIR /app
 
 EXPOSE 6999
 
+ENV JMX_HOST=localhost
+ENV JMX_PORT=9011
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=70.0 -XX:+UseG1GC"
 
 COPY --from=builder /build/target/*.jar app.jar
 
-ENTRYPOINT ["sh", "-c", "exec java ${JAVA_OPTS} -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "exec java \
+  -Dcom.sun.management.jmxremote \
+  -Dcom.sun.management.jmxremote.port=${JMX_PORT} \
+  -Dcom.sun.management.jmxremote.rmi.port=${JMX_PORT} \
+  -Dcom.sun.management.jmxremote.ssl=false \
+  -Dcom.sun.management.jmxremote.authenticate=false \
+  -Djava.rmi.server.hostname=${JMX_HOST} \
+  ${JAVA_OPTS} \
+  -jar app.jar"]

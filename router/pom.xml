@@ -20,6 +20,7 @@
         <hash4j.version>0.30.0</hash4j.version>
         <wiremock.version>3.13.0</wiremock.version>
         <jackson.version>2.21.3</jackson.version>
+        <httpclient.version>5.6.1</httpclient.version>
     </properties>
 
     <dependencies>
@@ -53,6 +54,11 @@
             <groupId>com.dynatrace.hash4j</groupId>
             <artifactId>hash4j</artifactId>
             <version>${hash4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>${httpclient.version}</version>
         </dependency>
 
         <!-- Test -->

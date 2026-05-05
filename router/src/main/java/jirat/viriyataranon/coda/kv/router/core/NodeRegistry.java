@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Map;
@@ -108,6 +109,7 @@ public class NodeRegistry {
     }
 
     private synchronized void evict() {
+        var startDateTime = Instant.now();
         var threshold = Instant.now().minusMillis(config.getEvictionThresholdMs());
 
         var staleNodes = new ArrayList<String>();
@@ -128,15 +130,20 @@ public class NodeRegistry {
 
             newTopology.hasher().removeBucket(bucket);
             newTopology.bucketToNodeId().remove(bucket);
+            nodeLastSeen.remove(nodeId);
             evictedNodes.add(nodeInfo);
         }
 
         topology.set(newTopology);
 
+        var endDateTime = Instant.now();
         log.atInfo()
                 .addKeyValue("operation", RouterOperation.REGISTRY)
                 .addKeyValue("registryStatus", RegistryResult.Status.EVICTED)
                 .addKeyValue("targetNodes", evictedNodes)
+                .addKeyValue("startDateTime", startDateTime)
+                .addKeyValue("endDateTime", endDateTime)
+                .addKeyValue("executionTime", Duration.between(startDateTime, endDateTime).toMillis())
                 .log("Evicted {} nodes at version: {}", evictedNodes.size(), newTopology.version());
     }
 

@@ -20,6 +20,7 @@
         <hash4j.version>0.30.0</hash4j.version>
         <apache-commons.version>3.20.0</apache-commons.version>
         <jackson.version>2.21.3</jackson.version>
+        <httpclient.version>5.6.1</httpclient.version>
     </properties>
 
     <dependencies>
@@ -53,6 +54,11 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>${apache-commons.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>${httpclient.version}</version>
         </dependency>
 
         <!-- Hashing -->
