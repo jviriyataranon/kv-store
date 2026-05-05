@@ -149,7 +149,16 @@ public class RouterController {
                 var futures = new ArrayList<CompletableFuture<Void>>();
                 for (var node : nodes) {
                     targetNodes.add(node);
-                    var future = CompletableFuture.runAsync(() -> streamResponse(node, headers, output), executor);
+                    var future = CompletableFuture.runAsync(() -> {
+                        try {
+                            streamResponse(node, headers, output);
+                        } catch (Exception e) {
+                            log.atWarn()
+                                    .addKeyValue("nodeId", node.nodeId())
+                                    .setCause(e)
+                                    .log("Partial stream failure");
+                        }
+                    }, executor);
                     futures.add(future);
                 }
 

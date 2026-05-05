@@ -8,7 +8,6 @@ import jakarta.annotation.PreDestroy;
 import jirat.viriyataranon.coda.kv.router.config.RouterConfig;
 import jirat.viriyataranon.coda.kv.router.exception.UnknownNodeException;
 import jirat.viriyataranon.coda.kv.router.model.*;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Service
-@AllArgsConstructor
 public class NodeRegistry {
 
     private static final String THREAD_NAME = "node-eviction";

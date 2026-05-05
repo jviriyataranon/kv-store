@@ -1,6 +1,6 @@
 package jirat.viriyataranon.coda.kv.core;
 
-import io.micrometer.common.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jirat.viriyataranon.coda.kv.config.KvConfig;
