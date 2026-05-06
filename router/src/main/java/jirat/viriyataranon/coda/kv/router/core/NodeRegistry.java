@@ -62,47 +62,47 @@ public class NodeRegistry {
         evictionScheduler.shutdownNow();
     }
 
-    public synchronized RegistryResult register(String id, String url) {
+    public synchronized RegistryResult register(String nodeId, String url) {
         var snapshot = topology.get();
         var snapshotNodeIdToInfo = snapshot.nodeIdToInfo();
 
-        if (snapshotNodeIdToInfo.containsKey(id)) {
-            nodeLastSeen.put(id, Instant.now());
+        if (snapshotNodeIdToInfo.containsKey(nodeId)) {
+            nodeLastSeen.put(nodeId, Instant.now());
 
-            return RegistryResult.refreshed(snapshotNodeIdToInfo.get(id));
+            return RegistryResult.refreshed(snapshotNodeIdToInfo.get(nodeId));
         }
 
         var newTopology = snapshot.forkNextVersion();
 
         var bucket = newTopology.hasher().addBucket();
-        var nodeInfo = new NodeInfo(id, url, bucket);
+        var nodeInfo = new NodeInfo(nodeId, url, bucket);
 
-        newTopology.nodeIdToInfo().put(id, nodeInfo);
-        newTopology.bucketToNodeId().put(bucket, id);
+        newTopology.nodeIdToInfo().put(nodeId, nodeInfo);
+        newTopology.bucketToNodeId().put(bucket, nodeId);
 
         topology.set(newTopology);
-        nodeLastSeen.put(id, Instant.now());
+        nodeLastSeen.put(nodeId, Instant.now());
 
         return RegistryResult.registered(nodeInfo);
     }
 
-    public synchronized RegistryResult deregister(String id) {
+    public synchronized RegistryResult deregister(String nodeId) {
         var snapshot = topology.get();
         var snapshotNodeIdToInfo = snapshot.nodeIdToInfo();
 
-        if (!snapshotNodeIdToInfo.containsKey(id)) {
-            throw new UnknownNodeException("Deregister on unknown nodeId: " + id);
+        if (!snapshotNodeIdToInfo.containsKey(nodeId)) {
+            throw new UnknownNodeException("Deregister on unknown nodeId: " + nodeId);
         }
 
         var newTopology = snapshot.forkNextVersion();
-        var nodeInfo = newTopology.nodeIdToInfo().remove(id);
+        var nodeInfo = newTopology.nodeIdToInfo().remove(nodeId);
 
         var bucket = nodeInfo.bucket();
         newTopology.hasher().removeBucket(bucket);
         newTopology.bucketToNodeId().remove(bucket);
 
         topology.set(newTopology);
-        nodeLastSeen.remove(id);
+        nodeLastSeen.remove(nodeId);
 
         return RegistryResult.deregistered(nodeInfo);
     }

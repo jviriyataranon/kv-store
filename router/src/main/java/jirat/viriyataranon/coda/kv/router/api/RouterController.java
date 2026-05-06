@@ -178,10 +178,10 @@ public class RouterController {
                 .uri(node.url() + "/v1/kv")
                 .headers(h -> generateRequestId(forwardHeaders(h, headers)))
                 .exchange((req, res) -> {
-                    try (InputStream in = res.getBody();
-                         BufferedReader reader = new BufferedReader(
-                                 new InputStreamReader(in, StandardCharsets.UTF_8)
-                         )) {
+                    try (
+                            InputStream in = res.getBody();
+                            BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))
+                    ) {
 
                         var count = 0;
                         String line = reader.readLine();

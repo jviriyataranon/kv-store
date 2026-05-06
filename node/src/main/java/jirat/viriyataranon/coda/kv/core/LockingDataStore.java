@@ -40,14 +40,6 @@ public class LockingDataStore implements DataStore {
         });
     }
 
-    public Set<String> keys() {
-        return Collections.unmodifiableSet(store.keySet());
-    }
-
-    public void delete(String key) {
-        store.remove(key);
-    }
-
     public Node patch(String key, JsonNode delta, Long ifVersion) {
         return store.compute(key, (ignored, current) -> {
             if (current == null) {
@@ -69,5 +61,13 @@ public class LockingDataStore implements DataStore {
 
             return Node.next(delta, oldVersion);
         });
+    }
+
+    public Set<String> keys() {
+        return Collections.unmodifiableSet(store.keySet());
+    }
+
+    public void delete(String key) {
+        store.remove(key);
     }
 }
